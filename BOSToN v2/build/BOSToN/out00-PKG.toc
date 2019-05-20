@@ -1,0 +1,11 @@
+('C:\\Users\\jla78\\Desktop\\BOSToN no Terminal\\build\\BOSToN\\out00-PKG.pkg',
+ {'BINARY': 1,
+  'DATA': 1,
+  'EXECUTABLE': 1,
+  'EXTENSION': 1,
+  'PYMODULE': 1,
+  'PYSOURCE': 1},
+ [('out00-PYZ.pyz', 'C:\\Users\\jla78\\Desktop\\BOSToN no Terminal\\build\\BOSToN\\out00-PYZ.pyz', 'PYZ'), ('struct', 'C:\\Python27\\Lib\\struct.pyc', 'PYMODULE'), ('pyi_os_path', 'C:\\Python\\pyi-env-name\\lib\\site-packages\\PyInstaller\\loader\\pyi_os_path.pyc', 'PYMODULE'), ('pyi_archive', 'C:\\Python\\pyi-env-name\\lib\\site-packages\\PyInstaller\\loader\\pyi_archive.pyc', 'PYMODULE'), ('pyi_importers', 'C:\\Python\\pyi-env-name\\lib\\site-packages\\PyInstaller\\loader\\pyi_importers.pyc', 'PYMODULE'), ('_pyi_bootstrap', 'C:\\Python\\pyi-env-name\\lib\\site-packages\\PyInstaller\\loader\\_pyi_bootstrap.py', 'PYSOURCE'), ('pyi_carchive', 'C:\\Python\\pyi-env-name\\lib\\site-packages\\PyInstaller\\loader\\pyi_carchive.py', 'PYSOURCE'), ('pyi_rth_Tkinter', 'C:\\Python\\pyi-env-name\\lib\\site-packages\\PyInstaller\\loader\\rthooks\\pyi_rth_Tkinter.py', 'PYSOURCE'), ('pyi_rth_pkgres', 'C:\\Python\\pyi-env-name\\lib\\site-packages\\PyInstaller\\loader\\rthooks\\pyi_rth_pkgres.py', 'PYSOURCE'), ('pyi_rth_win32comgenpy', 'C:\\Python\\pyi-env-name\\lib\\site-packages\\PyInstaller\\loader\\rthooks\\pyi_rth_win32comgenpy.py', 'PYSOURCE'), ('BOSToN', 'BOSToN.py', 'PYSOURCE'), ('BOSToN.exe.manifest', 'C:\\Users\\jla78\\Desktop\\BOSToN no Terminal\\build\\BOSToN\\BOSToN.exe.manifest', 'BINARY')],
+ True,
+ None,
+ False)

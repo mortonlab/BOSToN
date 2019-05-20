@@ -1,0 +1,1095 @@
+#!/Python27/python.exe
+import cgi, cgitb ;cgitb.enable()
+import numpy as np
+from Bio.Blast import NCBIWWW
+from Bio.Blast import NCBIXML
+from Bio import SeqIO
+from Bio import Seq
+import re
+import operator
+import itertools
+import csv
+
+def commify(n): #adds commas to an integer n
+    if n is None: return None
+    n = str(n)
+    if '.' in n:
+        dollars, cents = n.split('.')
+    else:
+        dollars, cents = n, None
+
+    r = []
+    for i, c in enumerate(str(dollars)[::-1]):
+        if i and (not (i % 3)):
+            r.insert(0, ',')
+        r.insert(0, c)
+    out = ''.join(r)
+    if cents:
+        out += '.' + cents
+    return out
+	
+def convrearrg(n):
+	if n == 0:
+		out = 'A'
+	elif n == 1:
+		out = 'B'
+	elif n == 2:
+		out = 'C'
+	elif n == 3:
+		out = 'D'
+	elif n == 4:
+		out = 'E'
+	elif n == 5:
+		out = 'F'
+	elif n == 6:
+		out = 'G'
+	elif n == 7:
+		out = 'H'
+	else:
+		out = 'error: too many rearrangements'
+	return out
+
+	
+	
+form = cgi.FieldStorage() 
+seq1 = form.getvalue('seq1')
+seq2  = form.getvalue('seq2')
+
+
+
+f = open('C:/xampp/cgi-bin/centromere2.txt', 'r')        ## needs update with each build centromere location
+centromeres = np.loadtxt('C:/xampp/cgi-bin/centromere2.txt', usecols = (2,3))
+f.close()
+centromeres = centromeres.tolist()
+
+
+f = open('C:/xampp/cgi-bin/Mbn.csv', 'rb')
+reader = csv.reader(f)
+bands = []
+for row in reader:
+	bands.append(row)
+f.close()
+
+
+R = 'GRCh37/hg19'     #reference genome
+
+
+
+##########
+CC = 46          #chromosome count; input
+SC = 'XX'       #sex chromosome; input
+H =  'mat'        #inheritance; input (mat, pat, dn OR s
+
+def Make_Seq(seq1):
+	seq = re.findall("[a-zA-Z>]+", seq1)
+	seq = ''.join(seq)
+	seq = re.findall("[^>]+", seq)
+	seqout = []
+	for i in range(len(seq)):
+		seqout.append([seq[i]])
+	return seqout
+
+
+
+def Getblast_record(seq):
+	blast_record = range(0, len(seq))
+	for i in range(0,len(seq)):
+		result_handle = NCBIWWW.qblast("blastn", "refseq_genomic", seq[i][0], entrez_query="Homo sapiens[organism]", megablast = True) # qblast Highly similar sequences (megablast)
+		blast_record[i] = NCBIXML.read(result_handle)
+	return blast_record
+
+
+# br = range(0, len(seq))
+# def tryer():
+	# try:
+		# print q
+	# except:
+		# pass
+	# try:
+		# print w
+	# except:
+		# print "ok..."
+
+
+
+
+#questions: R = 'GRCh37/hg19' vs 'GRCh37.p10'
+## if hsp.expect < 0.05:
+## gives length of seq piece: len(hsp.query)
+Rtemp = 'GRCh37.p'
+# x case if hsp.query_start < 5:
+	
+# THIS IS BASED ON SCORE bits
+# blast_output, QxyD, moredata1 = Blast_Output(blast_record)
+# def Blast_Output(blast_record):
+	# # blast_output = range(0, len(blast_record)*2)
+	# blast_output = []
+	# QxyD = []
+	# moredata1 = []
+	# # counter = 0 
+	# for i in range(0,len(blast_record)):
+		# v = 0
+		# for alignment in blast_record[i].alignments:
+			# for hsp in alignment.hsps:
+				# if hsp.query_start < 5:
+					# if Rtemp in alignment.title:
+						# if "genomic contig" not in alignment.title:
+							# vt = hsp.bits
+							# if v < vt:
+								# v = vt
+								# D = hsp.frame           #direction vector D = (Q,S) e.g. (1,-1) == (+,-)
+								# SxD = D[1]
+								# QxD = D[0]
+								# SxC = str(re.findall('chromosome \d+', alignment.title))    #finding chr #
+								# QxS = hsp.query_start	
+								# SxS = hsp.sbjct_start
+								# if SxC == 'chromosome x' or SxC == 'chromosome X' or SxC == 'chromosome y' or SxC == 'chromosome Y':
+									# SxC = SxC
+								# else:
+									# SxC = map(int,re.findall('\d+', SxC))[0]
+								# if D == (1,1):
+									# QxE = QxS + len(hsp.query) - 1
+									# SxE = SxS + len(hsp.sbjct) - 1
+								# elif D == (1,-1):
+									# QxE = QxS + len(hsp.query) - 1
+									# SxE = SxS - len(hsp.sbjct) + 1
+								# elif D == (-1,1):
+									# QxE = QxS - len(hsp.query) + 1
+									# SxE = SxS + len(hsp.sbjct) - 1
+								# elif D == (-1,-1):
+									# QxE = QxS - len(hsp.query) + 1
+									# SxE = SxS - len(hsp.sbjct) + 1
+								# SxBP = SxE                               #making a BP definition for reference
+								# QxBP = QxE
+								# xExpect = hsp.expect
+								# xIdentity = (float(hsp.identities) / float(hsp.align_length))*100
+								# xScore = hsp.bits
+		# # y case if hsp.query_start > SxBP - 5 && hsp.query_start < SxBP + 5:
+		# v = 0
+		# for alignment in blast_record[i].alignments:
+			# for hsp in alignment.hsps:
+				# if hsp.query_start > QxBP - 20 and hsp.query_start < QxBP + 20:             # FIX FILTER INPUT END
+					# if Rtemp in alignment.title:
+						# if "genomic contig" not in alignment.title:
+							# vt = hsp.bits
+							# if v < vt:
+								# v = vt
+								# D = hsp.frame           #direction vector D = (Q,S) e.g. (1,-1) == (+,-)
+								# SyD = D[1]
+								# QyD = D[0]
+								# SyC = str(re.findall('chromosome \d+', alignment.title))    #finding chr #
+								# QyS = hsp.query_start
+								# SyS = hsp.sbjct_start
+								# if SyC == 'chromosome x' or SyC == 'chromosome X' or SyC == 'chromosome y' or SyC == 'chromosome Y':
+									# SyC = SyC
+								# else:
+									# SyC = map(int,re.findall('\d+', SyC))[0]
+								# if D == (1,1):
+									# QyE = QyS + len(hsp.query) - 1	
+									# SyE = SyS + len(hsp.sbjct) - 1
+								# elif D == (1,-1):
+									# QyE = QyS + len(hsp.query) - 1
+									# SyE = SyS - len(hsp.sbjct) + 1
+								# elif D == (-1,1):
+									# QyE = QyS - len(hsp.query) + 1	
+									# SyE = SyS + len(hsp.sbjct) - 1
+								# elif D == (-1,-1):
+									# QyE = QyS - len(hsp.query) + 1	
+									# SyE = SyS - len(hsp.sbjct) + 1
+								# SyBP = SyS                                 #making a BP definition for reference
+								# QyBP = QyS
+								# yExpect = hsp.expect
+								# yIdentity = (float(hsp.identities) / float(hsp.align_length))*100
+								# yScore = hsp.bits
+		# blast_output.append([SxC, SxBP, SxS, SxE, SxD])
+		# blast_output.append([SyC, SyBP, SyS, SyE, SyD])
+		# QxyD.append([QxD, QxS, QxE])
+		# QxyD.append([QyD, QyS, QyE])
+		# moredata1.append([xExpect, xScore, xIdentity])
+		# moredata1.append([yExpect, yScore, yIdentity])
+	# return blast_output, QxyD, moredata1
+	
+	
+# THIS CAN HANDLE X Y
+	
+def Blast_Output(blast_record):
+	# blast_output = range(0, len(blast_record)*2)
+	blast_output = []
+	QxyD = []
+	moredata1 = []
+	# counter = 0 
+	for i in range(0,len(blast_record)):
+		v = 0
+		for alignment in blast_record[i].alignments:
+			for hsp in alignment.hsps:
+				if hsp.query_start < 5:
+					if Rtemp in alignment.title:
+						if "genomic contig" not in alignment.title:
+							vt = hsp.bits
+							if v < vt:
+								v = vt
+								D = hsp.frame           #direction vector D = (Q,S) e.g. (1,-1) == (+,-)
+								SxD = D[1]
+								QxD = D[0]
+								SxC = str(re.findall('chromosome [\dXY]+', alignment.title))    #finding chr #
+								QxS = hsp.query_start	
+								SxS = hsp.sbjct_start
+								SxC = re.findall('[\dXY]+', SxC)[0]
+								if D == (1,1):
+									QxE = QxS + len(hsp.query) - 1
+									SxE = SxS + len(hsp.sbjct) - 1
+								elif D == (1,-1):
+									QxE = QxS + len(hsp.query) - 1
+									SxE = SxS - len(hsp.sbjct) + 1
+								elif D == (-1,1):
+									QxE = QxS - len(hsp.query) + 1
+									SxE = SxS + len(hsp.sbjct) - 1
+								elif D == (-1,-1):
+									QxE = QxS - len(hsp.query) + 1
+									SxE = SxS - len(hsp.sbjct) + 1
+								SxBP = SxE                               #making a BP definition for reference
+								QxBP = QxE
+								xExpect = hsp.expect
+								xIdentity = (float(hsp.identities) / float(hsp.align_length))*100
+								xScore = hsp.bits
+		# y case if hsp.query_start > SxBP - 5 && hsp.query_start < SxBP + 5:
+		v = 0
+		for alignment in blast_record[i].alignments:
+			for hsp in alignment.hsps:
+				if hsp.query_start > QxBP - 20 and hsp.query_start < QxBP + 20:             # FIX FILTER INPUT END
+					if Rtemp in alignment.title:
+						if "genomic contig" not in alignment.title:
+							vt = hsp.bits
+							if v < vt:
+								v = vt
+								D = hsp.frame           #direction vector D = (Q,S) e.g. (1,-1) == (+,-)
+								SyD = D[1]
+								QyD = D[0]
+								SyC = str(re.findall('chromosome [\dXY]+', alignment.title))    #finding chr #
+								QyS = hsp.query_start
+								SyS = hsp.sbjct_start
+								SyC = re.findall('[\dXY]+', SyC)[0]
+								if D == (1,1):
+									QyE = QyS + len(hsp.query) - 1	
+									SyE = SyS + len(hsp.sbjct) - 1
+								elif D == (1,-1):
+									QyE = QyS + len(hsp.query) - 1
+									SyE = SyS - len(hsp.sbjct) + 1
+								elif D == (-1,1):
+									QyE = QyS - len(hsp.query) + 1	
+									SyE = SyS + len(hsp.sbjct) - 1
+								elif D == (-1,-1):
+									QyE = QyS - len(hsp.query) + 1	
+									SyE = SyS - len(hsp.sbjct) + 1
+								SyBP = SyS                                 #making a BP definition for reference
+								QyBP = QyS
+								yExpect = hsp.expect
+								yIdentity = (float(hsp.identities) / float(hsp.align_length))*100
+								yScore = hsp.bits
+		blast_output.append([SxC, SxBP, SxS, SxE, SxD])
+		blast_output.append([SyC, SyBP, SyS, SyE, SyD])
+		QxyD.append([QxD, QxS, QxE])
+		QxyD.append([QyD, QyS, QyE])
+		moredata1.append([xExpect, xScore, xIdentity])
+		moredata1.append([yExpect, yScore, yIdentity])
+	return blast_output, QxyD, moredata1
+
+# SxS, SyS, SxE, SyE, SxC, SyC, SxD[1], SyD[1], SxBP, SyBP
+
+# blast_arm = Get_Arm(blast_output)
+# def Get_Arm(blast_output):
+	# blast_arm = range(0, len(blast_output))
+	# for i in range(0, len(blast_output)):
+		# #x chr
+		# if blast_output[i][0] == 'chromosome x' or blast_output[i][0] == 'chromosome X':
+			# if blast_output[i][2] > centromeres[0][1]:
+				# SxyA = 'q'
+			# elif blast_output[i][2] < centromeres[0][1]:
+				# SxyA = 'p'
+		# #y chr
+		# if blast_output[i][0] == 'chromosome y' or blast_output[i][0] == 'chromosome Y':
+			# if blast_output[i][2] > centromeres[1][1]:
+				# SxyA = 'q'
+			# elif blast_output[i][2] < centromeres[1][1]:
+				# SxyA = 'p'
+		# #remaining chromosomes arm definition [SxC + 1] needed for chr1 is in 3rd position == [2]
+		# else:
+			# if blast_output[i][2] > centromeres[blast_output[i][0] + 1][1]:
+				# SxyA = 'q'
+			# elif blast_output[i][2] < centromeres[blast_output[i][0] + 1][1]:
+				# SxyA = 'p'
+		# blast_arm[i] = SxyA
+	# return blast_arm
+	
+# THIS CAN HANDLE X Y
+def Get_Arm(blast_output):
+	blast_arm = range(0, len(blast_output))
+	for i in range(0, len(blast_output)):
+		#x chr
+		if blast_output[i][0] == 'X':
+			if blast_output[i][2] > centromeres[0][1]:
+				SxyA = 'q'
+			elif blast_output[i][2] < centromeres[0][1]:
+				SxyA = 'p'
+		#y chr
+		elif blast_output[i][0] == 'Y':
+			if blast_output[i][2] > centromeres[1][1]:
+				SxyA = 'q'
+			elif blast_output[i][2] < centromeres[1][1]:
+				SxyA = 'p'
+		#remaining chromosomes arm definition [SxC + 1] needed for chr1 is in 3rd position == [2]
+		else:
+			if blast_output[i][2] > centromeres[int(blast_output[i][0]) + 1][1]:
+				SxyA = 'q'
+			elif blast_output[i][2] < centromeres[int(blast_output[i][0]) + 1][1]:
+				SxyA = 'p'
+		blast_arm[i] = SxyA
+	return blast_arm
+
+
+# BANDxy = Get_Bands(blast_output, bands)
+def Get_Bands(blast_output, bands):
+	BANDxy = []
+	for o in range(len(blast_output)):
+		for i in range(len(bands)):
+			if bands[i][0] == str(blast_output[o][0]) and blast_output[o][2] >= int(bands[i][1]) and blast_output[o][2] < int(bands[i][2]):
+				blast_output[o][3]
+				BANDxy.append(bands[i][3])
+	return BANDxy
+
+################ Matrix's time, well actually list's
+
+
+
+	# [Iny, SyC, SyBP, SyS, SyE, SyD, SyA, QyD, QyS,QyE]
+# M1 = Make_List(blast_output, blast_arm, QxyD, BANDxy, moredata1)
+def Make_List(blast_output, blast_arm, QxyD, BANDxy, moredata1, M1 = "Nothing"):
+	blast_output2 = map(list, blast_output)
+	blast_arm2 = map(list, blast_arm)
+	M1 = list(range(0,len(blast_output2)))
+	for i in range(0,len(blast_output2)):
+		M1[i] = blast_output2[i] + blast_arm2[i] + QxyD[i] + [BANDxy[i]] + moredata1[i]
+		# print blast_output2[i] + blast_arm2[i]
+	for i in range(0,len(blast_output2)/2):
+		tempx = [''.join(['I',str(i),'x'])]
+		tempy = [''.join(['I',str(i),'y'])]
+		M1[i*2] = list(tempx) + M1[i*2]
+		M1[i*2 + 1] = list(tempy) + M1[i*2 + 1]
+		# print i
+		# print i*2
+		# print i*2 + 1
+	return M1
+
+
+	
+
+
+
+############# Logical Steps
+
+
+# DnC=  D_Picker(M1)
+# def D_Picker(M1):
+	# DnC = list(range(0,len(M1)))
+	# for i in range(0, len(M1)):
+		# DnC[i] = M1[i][1]
+	# DnC = list(set(DnC))
+	# DnC.sort()
+	# return DnC
+	
+	
+def D_Picker(M1):
+	DnC = list(range(0,len(M1)))
+	for i in range(0, len(M1)):
+		DnC[i] = M1[i][1]
+	DnC = list(set(DnC))
+	for i in range(len(DnC)):
+		if DnC[i] == 'X':
+			DnC[i] = -1
+		elif DnC[i] == 'Y':
+			DnC[i] = 0
+		else:
+			DnC[i] = int(DnC[i])
+	DnC.sort()
+	for i in range(len(M1)):
+		if M1[i][1] != 'X' and M1[i][1] != 'Y':  
+			M1[i][1] = int(M1[i][1])
+	return DnC
+
+# O_Picker(M1)
+# def O_Picker(M1):
+	# DnO = []
+	# for i in range(len(M1)/2):   #Find overlap
+		# if M1[i*2][7] == 1 and M1[i*2 + 1][7] == 1:
+			# DnO.append([M1[i*2][9] - M1[i*2 + 1][8]])
+		# elif M1[i*2][7] == 1 and M1[i*2 + 1][7] == -1:
+			# DnO.append([M1[i*2][9] - M1[i*2 + 1][9]])
+		# elif M1[i*2][7] == -1 and M1[i*2 + 1][7] == 1:
+			# DnO.append([M1[i*2][8] - M1[i*2 + 1][8]])
+		# elif M1[i*2][7] == -1 and M1[i*2 + 1][7] == -1:
+			# DnO.append([M1[i*2][8] - M1[i*2 + 1][9]])
+	# for i in range(len(M1)/2):    #Find BP overlap or insertion or normal
+		# if DnO[i][0] == -1:
+			# DnO[i].extend(['NORMAL'])
+		# elif DnO[i][0] < -1:
+			# DnO[i].extend(['INSERTION'])
+		# elif DnO[i][0] > -1:
+			# DnO[i].extend(['OVERLAP'])
+			# if M1[i*2][5] == 1:
+				# DnO[i].extend([M1[i*2][2] - DnO[i][0], M1[i*2][2]])
+			# elif M1[i*2][5] == -1:
+				# DnO[i].extend([M1[i*2][2] + DnO[i][0], M1[i*2][2]])
+			# if M1[i*2 + 1][5] == 1:
+				# DnO[i].extend([M1[i*2 + 1][2], M1[i*2 + 1][2] + DnO[i][0]])
+			# elif M1[i*2 + 1][5] == -1:
+				# DnO[i].extend([M1[i*2 + 1][2], M1[i*2 + 1][2] - DnO[i][0]])
+			# if list(str(DnO[i][2])) == list(str(DnO[i][3])):         # what to write in for MH x portion
+				# temp = list(str(DnO[i][2]))
+				# temp[len(list(str(DnO[i][2]))) - 1] = ''.join(['{',temp[len(list(str(DnO[i][2]))) - 1],'}'])	
+				# temp = ''.join(temp)
+				# DnO[i].append(temp)
+			# else:
+				# counter = 0
+				# BPs = list(str(DnO[i][2]))
+				# BPe = list(str(DnO[i][3]))
+				# for l in range(len(BPs)):
+					# if BPs[l] != BPe[l]:
+						# counter += 1
+				# temp = len(BPs) - counter
+				# finalBPs = []
+				# finalBPe = []
+				# for l in range(temp , len(BPs)):
+					# finalBPs.extend(BPs[l])
+					# finalBPe.extend(BPe[l])
+				# finalBPs = ''.join(finalBPs)
+				# finalBPe = ''.join(finalBPe)
+				# finalBP = ''.join(['{', finalBPs, '-', finalBPe, '}'])
+				# final = BPs
+				# final[len(final) - 1] = finalBP
+				# final = ''.join(final)
+				# DnO[i].append(final)
+			# if list(str(DnO[i][4])) == list(str(DnO[i][5])):         # what to write in for MH y portion
+				# temp = list(str(DnO[i][4]))
+				# temp[len(list(str(DnO[i][4]))) - 1] = ''.join(['{',temp[len(list(str(DnO[i][4]))) - 1],'}'])	
+				# temp = ''.join(temp)
+				# DnO[i].append(temp)
+			# else:
+				# counter = 0
+				# BPs = list(str(DnO[i][4]))
+				# BPe = list(str(DnO[i][5]))
+				# for l in range(len(BPs)):
+					# if BPs[l] != BPe[l]:
+						# counter += 1
+				# temp = len(BPs) - counter
+				# finalBPs = []
+				# finalBPe = []
+				# for l in range(temp , len(BPs)):
+					# finalBPs.extend(BPs[l])
+					# finalBPe.extend(BPe[l])
+				# finalBPs = ''.join(finalBPs)
+				# finalBPe = ''.join(finalBPe)
+				# finalBP = ''.join(['{', finalBPs, '-', finalBPe, '}'])
+				# final = BPs
+				# final[len(final) - 1] = finalBP
+				# final = ''.join(final)
+				# DnO[i].append(final)
+	# for l in range(len(DnO)):
+		# if DnO[l][1] == 'OVERLAP':
+			# M1[l*2][2] = DnO[l][6]
+			# M1[l*2 + 1][2] = DnO[l][7]
+
+			
+def O_Picker(M1, seq):
+	DnO = []
+	for i in range(len(M1)/2):   #Find overlap
+		if M1[i*2][7] == 1 and M1[i*2 + 1][7] == 1:
+			DnO.append([M1[i*2][9] - M1[i*2 + 1][8]])
+		elif M1[i*2][7] == 1 and M1[i*2 + 1][7] == -1:
+			DnO.append([M1[i*2][9] - M1[i*2 + 1][9]])
+		elif M1[i*2][7] == -1 and M1[i*2 + 1][7] == 1:
+			DnO.append([M1[i*2][8] - M1[i*2 + 1][8]])
+		elif M1[i*2][7] == -1 and M1[i*2 + 1][7] == -1:
+			DnO.append([M1[i*2][8] - M1[i*2 + 1][9]])
+	for i in range(len(M1)/2):    #Find BP overlap or insertion or normal
+		if DnO[i][0] == -1:
+			DnO[i].extend(['NORMAL'])
+		elif DnO[i][0] < -1:
+			DnO[i].extend(['INSERTION'])
+			if M1[i*2][7] == 1:
+				DnO[i].extend([M1[i*2][9]])
+			if M1[i*2][7] == -1:
+				DnO[i].extend([M1[i*2][8]])
+			if M1[i*2 + 1][7] == 1:
+				DnO[i].extend([M1[i*2 + 1][8]])
+			if M1[i*2 + 1][7] == -1:
+				DnO[i].extend([M1[i*2 + 1][9]]) 
+			temp = list(seq[i][0])
+			m = ''.join(temp[DnO[i][2]:DnO[i][3] - 1])
+			DnO[i].append(m)
+		elif DnO[i][0] > -1:
+			DnO[i].extend(['OVERLAP'])
+			if M1[i*2][5] == 1:
+				DnO[i].extend([M1[i*2][2] - DnO[i][0], M1[i*2][2]])
+			elif M1[i*2][5] == -1:
+				DnO[i].extend([M1[i*2][2] + DnO[i][0], M1[i*2][2]])
+			if M1[i*2 + 1][5] == 1:
+				DnO[i].extend([M1[i*2 + 1][2], M1[i*2 + 1][2] + DnO[i][0]])
+			elif M1[i*2 + 1][5] == -1:
+				DnO[i].extend([M1[i*2 + 1][2], M1[i*2 + 1][2] - DnO[i][0]])
+			if list(str(DnO[i][2])) == list(str(DnO[i][3])):         # what to write in for MH x portion
+				temp = list(str(DnO[i][2]))
+				temp[len(list(str(DnO[i][2]))) - 1] = ''.join(['{',temp[len(list(str(DnO[i][2]))) - 1],'}'])	
+				temp = ''.join(temp)
+				DnO[i].append(temp)
+			else:
+				counter = 0
+				BPs = list(str(DnO[i][2]))
+				BPe = list(str(DnO[i][3]))
+				for l in range(len(BPs)):
+					if BPs[l] != BPe[l]:
+						counter += 1
+				temp = len(BPs) - counter
+				finalBPs = []
+				finalBPe = []
+				for l in range(temp , len(BPs)):
+					finalBPs.extend(BPs[l])
+					finalBPe.extend(BPe[l])
+				finalBPs = ''.join(finalBPs)
+				finalBPe = ''.join(finalBPe)
+				finalBP = ''.join(['{', finalBPs, '-', finalBPe, '}'])
+				final = BPs
+				final[len(final) - 1] = finalBP
+				final = ''.join(final)
+				DnO[i].append(final)
+			if list(str(DnO[i][4])) == list(str(DnO[i][5])):         # what to write in for MH y portion
+				temp = list(str(DnO[i][4]))
+				temp[len(list(str(DnO[i][4]))) - 1] = ''.join(['{',temp[len(list(str(DnO[i][4]))) - 1],'}'])	
+				temp = ''.join(temp)
+				DnO[i].append(temp)
+			else:
+				counter = 0
+				BPs = list(str(DnO[i][4]))
+				BPe = list(str(DnO[i][5]))
+				for l in range(len(BPs)):
+					if BPs[l] != BPe[l]:
+						counter += 1
+				temp = len(BPs) - counter
+				finalBPs = []
+				finalBPe = []
+				for l in range(temp , len(BPs)):
+					finalBPs.extend(BPs[l])
+					finalBPe.extend(BPe[l])
+				finalBPs = ''.join(finalBPs)
+				finalBPe = ''.join(finalBPe)
+				finalBP = ''.join(['{', finalBPs, '-', finalBPe, '}'])
+				final = BPs
+				final[len(final) - 1] = finalBP
+				final = ''.join(final)
+				DnO[i].append(final)
+	for l in range(len(DnO)):
+		if DnO[l][1] == 'OVERLAP':
+			M1[l*2][2] = DnO[l][6]
+			M1[l*2 + 1][2] = DnO[l][7]
+	return DnO
+	
+
+	
+	
+
+	
+# D = Derivative_Definition(M1, DnC)
+def Derivative_Definition(M1, DnC):
+	D = []
+	for DC in DnC:               # loop through each D chr
+		NC = []      
+		D.append(DC)
+		########################################### P PART
+		for i in range(0, len(M1)):                # loop through each Ix & Iy data set   D chr
+			if M1[i][1] == DC and M1[i][6] == 'p':          #find DnR0 of p recombinations
+				NC.extend([M1[i][0],abs(M1[i][3] - centromeres[DC+1][0]),M1[i][0],abs(M1[i][4] - centromeres[DC+1][0])])     # X & Y Chr NO WORK CHANGE
+		if NC == []:
+			Pname = 'not None'
+		elif NC != []:
+			NCmini = NC.index(min(NC))
+			for i in range(len(M1)):
+				if re.search('y',NC[NCmini-1]) != None and M1[i][5] == 1 and M1[i][0] == NC[NCmini-1]:                                    # case: SyC, y == '+'
+					DnR0pN = ''.join(["->",str(M1[i-1][1]),str(M1[i-1][10]),"(",str(M1[i-1][2]),")::",str(M1[i][1]),str(M1[i][10]),"(",str(M1[i][2]),")->"])                                # case: various x +/- & p/q
+					DnR0pC = M1[i-1][1]
+					DnR0pD = M1[i-1][5]
+					DnR0pA = M1[i-1][6]
+					if M1[i-1][5] == 1:
+						DnR0pB = M1[i-1][3]                  # 3 start  
+					elif M1[i-1][5] == -1:
+						DnR0pB = M1[i-1][4]                  # 4 end  
+				elif re.search('x',NC[NCmini-1]) != None and M1[i][5] == -1 and M1[i][0] == NC[NCmini-1]:                                    # case: SxC, x == '-'   
+					DnR0pN = ''.join(["->",str(M1[i+1][1]),str(M1[i+1][10]),"(",str(M1[i+1][2]),")::",str(M1[i][1]),str(M1[i][10]),"(",str(M1[i][2]),")->"])
+					DnR0pC = M1[i+1][1]
+					DnR0pD = M1[i+1][5]
+					DnR0pA = M1[i+1][6]
+					if M1[i+1][5] == 1:
+						DnR0pB = M1[i+1][3]                  # 3 start  
+					elif M1[i+1][5] == -1:
+						DnR0pB = M1[i+1][4]                  # 4 end  
+			Rp = [[DnR0pB, DnR0pC, DnR0pD, DnR0pA, DnR0pN,'pside']]	
+			Pname = None
+			while Pname == None:
+				Rp, Pname = P_Extender(M1, Rp)
+			D.append(Rp)
+		
+		##################################### Q PART
+	# for DC in DnC:
+		NC = []
+		for i in range(0, len(M1)):                # loop through each Ix & Iy data set  D
+			if M1[i][1] == DC and M1[i][6] == 'q':          #find DnR0 of p recombinations
+				NC.extend([M1[i][0],abs(M1[i][3] - centromeres[DC+1][1]),M1[i][0],abs(M1[i][4] - centromeres[DC+1][1])])     # X & Y Chr NO WORK CHANGE
+		if NC == []:
+			pass
+		elif NC != []:
+			NCmini = NC.index(min(NC))
+			for i in range(len(M1)):
+				if re.search('y',NC[NCmini-1]) != None and M1[i][5] == -1 and M1[i][0] == NC[NCmini-1]:                                    # case: SyC, y == '-'
+					DnR0qN = ''.join(["->",str(M1[i][1]),str(M1[i][10]),"(",str(M1[i][2]),")::",str(M1[i-1][1]),str(M1[i-1][10]),"(",str(M1[i-1][2]),")->"])                                 # case: various x +/- & p/q
+					DnR0qC = M1[i-1][1]
+					DnR0qD = M1[i-1][5]
+					DnR0qA = M1[i-1][6] 
+					if M1[i-1][5] == 1:
+						DnR0qB = M1[i-1][4]                
+					elif M1[i-1][5] == -1:
+						DnR0qB = M1[i-1][3]                   
+				elif re.search('x',NC[NCmini-1]) != None and M1[i][5] == 1 and M1[i][0] == NC[NCmini-1]:                                    # case: SxC, x == '+'   
+					DnR0qN = ''.join(["->",str(M1[i][1]),str(M1[i][10]),"(",str(M1[i][2]),")::",str(M1[i+1][1]),str(M1[i+1][10]),"(",str(M1[i+1][2]),")->"])
+					DnR0qC = M1[i+1][1]
+					DnR0qD = M1[i+1][5]
+					DnR0qA = M1[i+1][6]
+					if M1[i+1][5] == 1:
+						DnR0qB = M1[i+1][4]                  # 3 start  
+					elif M1[i+1][5] == -1:
+						DnR0qB = M1[i+1][3]                  # 4 end  
+			Rq = [[DnR0qB, DnR0qC, DnR0qD, DnR0qA, DnR0qN,'qside']]	
+			Qname = None
+			while Qname == None:
+				Rq, Qname = Q_Extender(M1, Rq)
+			D.append(Rq)
+	return D
+
+	
+	
+	
+###################################################################################################################################
+def Q_Extender(M1, Rq, Qname = None):
+	temp = []
+	for i in range(len(M1)):
+		if Rq[len(Rq)-1][1] == M1[i][1]:          # len(Rq)-1 because index starts at 0
+			if Rq[len(Rq)-1][2] == 1:   
+				if M1[i][3] > Rq[len(Rq)-1][0] and M1[i][4] > Rq[len(Rq)-1][0]:
+					temp.extend([M1[i][0],abs(M1[i][3] -  Rq[len(Rq)-1][0])])
+					temp.extend([M1[i][0],abs(M1[i][4] -  Rq[len(Rq)-1][0])])
+				elif M1[i][3] <= Rq[len(Rq)-1][0] and M1[i][4] <= Rq[len(Rq)-1][0]:
+					pass
+			elif Rq[len(Rq)-1][2] == -1:   
+				if M1[i][3] < Rq[len(Rq)-1][0] and M1[i][4] < Rq[len(Rq)-1][0]:
+					temp.extend([M1[i][0],abs(M1[i][3] -  Rq[len(Rq)-1][0])])
+					temp.extend([M1[i][0],abs(M1[i][4] -  Rq[len(Rq)-1][0])])
+				elif M1[i][3] >= Rq[len(Rq)-1][0] and M1[i][4] >= Rq[len(Rq)-1][0]:
+					pass
+	if temp == []:
+		Qname = "join(DaRn-1pC,DaRn-1pA,'ter')"
+		Rq[len(Rq) - 1][4] = ''.join([str(Rq[len(Rq) - 1][4]),str(Rq[len(Rq) - 1][1]),str(Rq[len(Rq) - 1][3]),'ter'])
+		return Rq, Qname
+	else:
+		tempmini = temp.index(min(temp))
+		for i in range(len(M1)):
+			if re.search('y',temp[tempmini-1]) != None and M1[i][0] == temp[tempmini-1]:                                     # case: SyC, y == +
+				DnRnqN = ''.join([str(M1[i][1]),str(M1[i][10]),'(',str(M1[i][2]),')::',str(M1[i-1][1]),str(M1[i-1][10]),'(',str(M1[i-1][2]),')->'])                                 
+				DnRnqC = M1[i-1][1]
+				DnRnqD = M1[i-1][5]
+				DnRnqA = M1[i-1][6]
+				if M1[i-1][5] == 1:
+					DnRnqB = M1[i-1][4]                  # 3 start  
+				elif M1[i-1][5] == -1:
+					DnRnqB = M1[i-1][3]                  # 4 end  
+			elif re.search('x',temp[tempmini-1]) != None and M1[i][0] == temp[tempmini-1]:                                    # case: SxC, x == -   
+				DnRnqN = ''.join([str(M1[i][1]),str(M1[i][10]),'(',str(M1[i][2]),')::',str(M1[i+1][1]),str(M1[i+1][10]),'(',str(M1[i+1][2]),')->'])
+				DnRnqC = M1[i+1][1]
+				DnRnqD = M1[i+1][5]
+				DnRnqA = M1[i+1][6]
+				if M1[i+1][5] == 1:
+					DnRnqB = M1[i+1][4]                  # 3 start  
+				elif M1[i+1][5] == -1:
+					DnRnqB = M1[i+1][3]                  # 4 end  
+		Rq.append([DnRnqB, DnRnqC, DnRnqD, DnRnqA, DnRnqN,'qside'])
+		return Rq, Qname
+
+
+
+def P_Extender(M1, Rp, Pname = None):
+	temp = []
+	for i in range(len(M1)):
+		if Rp[len(Rp)-1][1] == M1[i][1]:          # len(Rp)-1 because index starts at 0
+			if Rp[len(Rp)-1][2] == 1:   
+				if M1[i][3] < Rp[len(Rp)-1][0] and M1[i][4] < Rp[len(Rp)-1][0]:
+					temp.extend([M1[i][0],abs(M1[i][3] -  Rp[len(Rp)-1][0])])
+					temp.extend([M1[i][0],abs(M1[i][4] -  Rp[len(Rp)-1][0])])
+				elif M1[i][3] >= Rp[len(Rp)-1][0] and M1[i][4] >= Rp[len(Rp)-1][0]:
+					pass
+			elif Rp[len(Rp)-1][2] == -1:   
+				if M1[i][3] > Rp[len(Rp)-1][0] and M1[i][4] > Rp[len(Rp)-1][0]:
+					temp.extend([M1[i][0],abs(M1[i][3] -  Rp[len(Rp)-1][0])])
+					temp.extend([M1[i][0],abs(M1[i][4] -  Rp[len(Rp)-1][0])])
+				elif M1[i][3] <= Rp[len(Rp)-1][0] and M1[i][4] <= Rp[len(Rp)-1][0]:
+					pass
+	if temp == []:
+		Pname = "join(DaRn-1pC,DaRn-1pA,'ter')"
+		Rp[len(Rp) - 1][4] = ''.join([str(Rp[len(Rp) - 1][1]),str(Rp[len(Rp) - 1][3]),'ter',str(Rp[len(Rp) - 1][4])])
+		return Rp, Pname
+	else:
+		tempmini = temp.index(min(temp))
+		for i in range(len(M1)):
+			if re.search('y',temp[tempmini-1]) != None and M1[i][0] == temp[tempmini-1]:                                 # case: SyC, y == +
+				DnRnpN = ''.join([str(M1[i-1][1]),str(M1[i-1][10]),'(',str(M1[i-1][2]),')::',str(M1[i][1]),str(M1[i][10]),'(',str(M1[i][2]),')->'])          
+				DnRnpC = M1[i-1][1]
+				DnRnpD = M1[i-1][5]
+				DnRnpA = M1[i-1][6]
+				if M1[i-1][5] == 1:
+					DnRnpB = M1[i-1][3]                  # 3 start  
+				elif M1[i-1][5] == -1:
+					DnRnpB = M1[i-1][4]                  # 4 end  
+			elif re.search('x',temp[tempmini-1]) != None and M1[i][0] == temp[tempmini-1]:                                # case: SxC, x == -   
+				DnRnpN = ''.join([str(M1[i+1][1]),str(M1[i+1][10]),'(',str(M1[i+1][2]),')::',str(M1[i][1]),str(M1[i][10]),'(',str(M1[i][2]),')->'])
+				DnRnpC = M1[i+1][1]
+				DnRnpD = M1[i+1][5]
+				DnRnpA = M1[i+1][6]
+				if M1[i+1][5] == 1:
+					DnRnpB = M1[i+1][3]                  # 3 start  
+				elif M1[i+1][5] == -1:
+					DnRnpB = M1[i+1][4]                  # 4 end  
+		Rp.append([DnRnpB, DnRnpC, DnRnpD, DnRnpA, DnRnpN,'pside'])
+		return Rp, Pname
+
+
+def Naming(D, DnC):
+# if 1 == 1:
+	Kseq = []
+	Kseq.append([''.join(['seq[',R,'] '])])
+	for DC in DnC:                  # pick corresponding D chr
+		finalp = []
+		finalq = [] 
+		for i in range(len(D)):     # pick corresponding D chr
+			if D[i] == DC:             # pick corresponding D chr
+				for o in range(len(D[i + 1])):
+					if D[i + 1][o][5] == 'pside':
+						finalp = finalp + [D[i + 1][o][4]]
+						finalp.reverse()              # MAKE SURE REVERSING WITHIN LOOP CORRECT
+					elif D[i + 1][o][5] == 'qside':
+						finalq = finalq + [D[i + 1][o][4]]
+		strp = ''.join(finalp)           
+		strq = ''.join(finalq)             # empty ones == ''
+		if finalp != [] and finalq != []:
+			Kseq.append([''.join(['der(',str(DC),')(',strp,strq,'),'])])
+		elif finalp == [] and finalq != []:
+			Kseq.append([''.join(['der(',str(DC),')(',str(DC),'pter',strp,strq,'),'])])
+		elif finalp != [] and finalq == []:
+			Kseq.append([''.join(['der(',str(DC),')(',strp,strq,str(DC),'qter','),'])])
+		elif finalp == [] and finalq == []:
+			Kseq.append([''.join(['der(',str(DC),')(',strp,strq,'error unable name centromere',')'])])
+	Kseq2 = []
+	for i in range(len(Kseq)):
+		if not i == 0:					#add "," between der - not working
+			Kseq.append(',')
+		Kseq2 = Kseq2 + Kseq[i]
+	Kseq2 = ''.join(Kseq2)
+	return Kseq2
+
+	
+	
+	
+
+def Tables(M1 = None):
+	if M1 == None:
+		pass
+	elif M1 != None:
+		print """
+			<table border="1">
+			<tr>
+			<th>Rearrangement </th>
+			<th>Query Start</th>
+			<th>Query End</th>
+			<th>Query Length</th>
+			<th>Query Strand</th>
+			<th>Identity</th>
+			<th>Sbjct Chromosome</th>
+			<th>Sbjct Band</th>
+			<th>Sbjct Strand</th>
+			<th>Sbjct Start</th>
+			<th>Sbjct End</th>
+			<th>Max Score</th>
+			<th>e-value</th>
+		</tr>
+		"""
+		
+		for i in range(len(M1)/2):
+			## ALL THE x stuff here
+			print "<tr>"
+			print "<td>%s</td>" % convrearrg(i) #input/seq #
+			print "<td>%s</td>" % M1[i*2][8] # query start
+			print "<td>%s</td>" % M1[i*2][9] # query end
+			print "<td>%s</td>" % str(abs(M1[i*2][8] - M1[i*2][9]) + 1) # query length
+			if M1[i*2][7] == 1:
+				print "<td> (+) </td>"  # query (+) strand
+			elif M1[i*2][7] == -1:
+				print "<td> (-) </td>"  # query (-) strand
+			print "<td>%s</td>" % ''.join([str(M1[i*2][13]), '%']) # identity
+			print "<td>%s</td>" % M1[i*2][1] # sbjct chromosome
+			print "<td>%s</td>" % M1[i*2][10] # sbjct band
+			if M1[i*2][5] == 1:
+				print "<td> (+) </td>"  # sbjct direction
+			elif M1[i*2][5] == -1:
+				print "<td> (-) </td>"  # sbjct direction
+			print "<td>%s</td>" % M1[i*2][3] # sbjct start
+			print "<td>%s</td>" % M1[i*2][4] # sbjct end
+			print "<td>%s</td>" % M1[i*2][12] # blast Score
+			print "<td>%s</td>" % M1[i*2][11] # blast e-value 
+			print "</tr>"
+			
+			## ALL THE y stuff here
+			print "<tr>"
+			print "<td>%s</td>" % convrearrg(i)  # input/seq #
+			print "<td>%s</td>" % M1[i*2+1][8] # query start
+			print "<td>%s</td>" % M1[i*2+1][9] # query end
+			print "<td>%s</td>" % str(abs(M1[i*2+1][8] - M1[i*2+1][9]) + 1) # query length
+			if M1[i*2+1][7] == 1:
+				print "<td> (+) </td>"  # query (+) strand
+			elif M1[i*2+1][7] == -1:
+				print "<td> (-) </td>"  # query (-) strand
+			print "<td>%s</td>" % ''.join([str(M1[i*2+1][13]), '%']) # identity
+			print "<td>%s</td>" % M1[i*2+1][1] # sbjct chromosome
+			print "<td>%s</td>" % M1[i*2+1][10] # sbjct band
+			if M1[i*2+1][5] == 1:
+				print "<td> (+) </td>"  # sbjct direction
+			elif M1[i*2+1][5] == -1:
+				print "<td> (-) </td>"  # sbjct direction
+			print "<td>%s</td>" % M1[i*2+1][3] # sbjct start
+			print "<td>%s</td>" % M1[i*2+1][4] # sbjct end
+			print "<td>%s</td>" % M1[i*2+1][12] # blast Score
+			print "<td>%s</td>" % M1[i*2+1][11] # blast e-value 
+			print "</tr>"
+		print "</table>"
+	
+
+
+# M1 = [['I0x', 10, 67539995, 67540070, 67539995, -1, 'q', 1, 1, 76, 'q21.3', 5.08183e-31], ['I0y', 5, 29658440, 29658440, 29658502, 1, 'p', 1, 74, 136, 'p13.3', 8.56408e-24], ['I1x', 10, 67539990, 67539920, 67539990, 1, 'q', 1, 1, 71, 'q21.3', 4.35688e-28], ['I1y', 5, 29658426, 29658426, 29658316, -1, 'p', 1, 71, 181, 'p13.3', 2.53104e-50]]		
+def Tables_Small(M1, i):
+# <th>Rearrangement </th>
+	print "All data within tables are acquired from BLAST"
+	#<th>Rearrangement </th>
+	print """
+		<table border="1">
+		<tr>
+		<th>Query Start</th>
+		<th>Query End</th>
+		<th>Query Length</th>
+		<th>Query Strand</th>
+		<th>Identity</th>
+		<th>Sbjct Chromosome</th>
+		<th>Sbjct Band</th>
+		<th>Sbjct Strand</th>
+		<th>Sbjct Start</th>
+		<th>Sbjct End</th>
+		<th>Max Score</th>
+		<th>e-value</th>
+		</tr>
+	"""
+	## ALL THE x stuff here
+	print "<tr>"
+	#print "<td>%s</td>" % str(i)  # input/seq #
+	print "<td>%s</td>" % M1[i*2][8] # query start
+	print "<td>%s</td>" % M1[i*2][9] # query end
+	print "<td>%s</td>" % str(abs(M1[i*2+1][8] - M1[i*2+1][9]) + 1) # query length
+	if M1[i*2][7] == 1:
+		print "<td> (+) </td>"  # query (+) strand
+	elif M1[i*2][7] == -1:
+		print "<td> (-) </td>"  # query (-) strand
+	print "<td>%s</td>" % ''.join([str(M1[i*2][13]), '%']) # identity
+	print "<td>%s</td>" % M1[i*2][1] # sbjct chromosome
+	print "<td>%s</td>" % M1[i*2][10] # sbjct band
+	if M1[i*2][5] == 1:
+		print "<td> (+) </td>"  # sbjct direction
+	elif M1[i*2][5] == -1:
+		print "<td> (-) </td>"  # sbjct direction
+	print "<td>%s</td>" % M1[i*2][3] # sbjct start
+	print "<td>%s</td>" % M1[i*2][4] # sbjct end
+	print "<td>%s</td>" % M1[i*2][12] # blast Score
+	print "<td>%s</td>" % M1[i*2][11] # blast e-value 
+	print "</tr>"
+			
+	## ALL THE y stuff here
+	print "<tr>"
+	#print "<td>%s</td>" % str(i)  # input/seq #
+	print "<td>%s</td>" % M1[i*2+1][8] # query start
+	print "<td>%s</td>" % M1[i*2+1][9] # query end
+	print "<td>%s</td>" % str(abs(M1[i*2+1][8] - M1[i*2+1][9]) + 1) # query length
+	if M1[i*2+1][7] == 1:
+		print "<td> (+) </td>"  # query (+) strand
+	elif M1[i*2+1][7] == -1:
+		print "<td> (-) </td>"  # query (-) strand
+	print "<td>%s</td>" % ''.join([str(M1[i*2+1][13]), '%']) # identity
+	print "<td>%s</td>" % M1[i*2+1][1] # sbjct chromosome
+	print "<td>%s</td>" % M1[i*2+1][10] # sbjct band
+	if M1[i*2+1][5] == 1:
+		print "<td> (+) </td>"  # sbjct direction
+	elif M1[i*2+1][5] == -1:
+		print "<td> (-) </td>"  # sbjct direction
+	print "<td>%s</td>" % M1[i*2+1][3] # sbjct start
+	print "<td>%s</td>" % M1[i*2+1][4] # sbjct end
+	print "<td>%s</td>" % M1[i*2+1][12] # blast Score
+	print "<td>%s</td>" % M1[i*2+1][11] # blast e-value 
+	print "</tr>"
+	print "</table>"
+	
+	
+	
+# RP = Rearrangement_Pieces(M1)
+# def Rearrangement_Pieces(M1):
+	# RP = []
+	# for i in range(len(M1)/2):
+		# temp1 = ''.join([str(M1[i*2][1]), str(M1[i*2][10])])
+		# if M1[i*2][5] == 1:
+			# temp2 = '(+)'
+		# elif M1[i*2][5] == -1:
+			# temp2 = '(-)'
+		# temp3 = ''.join(['(', str(M1[i*2][2]), ')'])
+		# temp4 = ''.join(['::'])
+		# temp5 = ''.join([str(M1[i*2 + 1][1]), str(M1[i*2 + 1][10])])
+		# if M1[i*2 + 1][5] == 1:
+			# temp6 = '(+)'
+		# elif M1[i*2 + 1][5] == -1:
+			# temp6 = '(-)'
+		# temp7 = ''.join(['(', str(M1[i*2 + 1][2]), ')'])
+		# RP.extend([''.join([temp1,temp2,temp3,temp4,temp5,temp6,temp7])])
+	# return RP	
+	
+	
+def Rearrangement_Pieces(M1, DnO):
+	RP = []
+	for i in range(len(M1)/2):
+		temp1 = ''.join([str(M1[i*2][1]), str(M1[i*2][10])])
+		if M1[i*2][5] == 1:
+			temp2 = '(+)'
+		elif M1[i*2][5] == -1:
+			temp2 = '(-)'
+		temp3 = ''.join(['(', str(M1[i*2][2]), ')'])
+		if DnO[i][1] == 'OVERLAP' or DnO[i][1] == 'NORMAL' :
+			temp4 = ''.join(['::'])
+		elif DnO[i][1] == 'INSERTION' :
+			temp4 = ''.join(['::',DnO[i][4],'::'])
+		temp5 = ''.join([str(M1[i*2 + 1][1]), str(M1[i*2 + 1][10])])
+		if M1[i*2 + 1][5] == 1:
+			temp6 = '(+)'
+		elif M1[i*2 + 1][5] == -1:
+			temp6 = '(-)'
+		temp7 = ''.join(['(', str(M1[i*2 + 1][2]), ')'])
+		RP.extend([''.join([temp1,temp2,temp3,temp4,temp5,temp6,temp7])])
+	return RP	
+	
+
+	
+def MAIN_DATA(seq1):
+	seq = Make_Seq(seq1)
+	blast_record = Getblast_record(seq)
+# if 1 == 1:
+	blast_output, QxyD, moredata1 = Blast_Output(blast_record)
+	blast_arm = Get_Arm(blast_output)
+	BANDxy = Get_Bands(blast_output, bands)
+	M1 = Make_List(blast_output, blast_arm, QxyD, BANDxy, moredata1)
+	return M1, seq
+	
+def MAIN_NOMENCLATURE(M1):
+	DnC=  D_Picker(M1)
+	D = Derivative_Definition(M1, DnC)
+	nomenclature = Naming(D, DnC)
+	return nomenclature
+	
+print"""
+	<html>
+		<head><style type = text/css></style>
+			<title>BOSTON</title>
+		</head>
+		<body>
+			<a href = '/cgi-bin/examples.py'> <h2>Click here to copy the rearrangement sequences of example DGAP cases.</h2> </a>
+		</body>
+"""
+
+print"""
+<form action="/cgi-bin/BOSToN.py" method="get">
+
+
+Enter rearrangement sequences separated  by >: <br />
+<TEXTAREA NAME="seq1" ROWS=10 COLS=150 >
+</TEXTAREA>
+<input type="submit" value="submit"/>
+
+</form>
+
+
+"""
+
+
+
+
+if seq1 == None:
+	print "<h2>Entered Sequences: %s </h2>" % ('Nothing has been entered yet.')
+	print """
+	
+	
+	"""
+	
+	#print "<p id="demo"></p>"
+	
+	#print "<script>"
+	#print "var myVar=setInterval(function(){myTimer()},1000);"
+	#print "function myTimer()"
+	#print "{"
+	#print "var d=new Date();"
+	#print "var t=d.toLocaleTimeString();"
+	#print "document.getElementById("demo").innerHTML=t;"
+	#print "}"
+	#print "function myStopFunction()"
+	#print "{"
+	#print "clearInterval(myVar);"
+	#print "}"
+	#print "</script>"
+	
+if seq1 != None:
+	try:
+		M1, seq = MAIN_DATA(seq1)
+	except:
+		print "<h1> Error occurred, this is most likely due to an improper sequence seperator or blast might not work well for some of the given sequences </h1>"
+	try:
+		DnO = O_Picker(M1, seq)
+	except:
+		print "<h1> Error in O_Picker determining microhomology</h1>"
+	for i in range(len(Make_Seq(seq1))):
+		print "<br>Rearrangement_%s </br>" % convrearrg(i) 
+		print "<br><div style='word-wrap: break-word'> %s </div></br>" % str(Make_Seq(seq1)[i][0])
+		Tables_Small(M1, i)
+		RP = Rearrangement_Pieces(M1, DnO)
+		print "<br>BLA(S)T Output:  %s </br>" % RP[i]
+	print "<br> Combined rearrangement table: </br>"
+	Tables(M1)
+	try:
+		print "<br><b>Next-Gen Cytogenetic Nomenclature:</b><br>" 
+		print "%s" % str(MAIN_NOMENCLATURE(M1))
+		
+	except:
+		print "<br> Suggested nomenclature had issues being put together. </br>"
+
+	print "<br>"
+	print "<br>"
+	#print "%s" % M1
+	print "</body>"
+print "</html>"
+
+
+# MAKE SURE REVERSING WITHIN LOOP CORRECT
+# THIS IS BASED ON EXPECT VALUE
+# THIS IS BASED ON SCORE bits

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script type="text/javascript">
+			
+			function checkForm(form)
+			  {
+				var link = document.getElementById("download");
+				link.innerHTML = "Hello" + "Hello";
+					
+				if(!form.terms.checked) 
+				{
+				  alert("Please indicate that you accept the Terms and Conditions");
+				  form.terms.focus();
+				  return false;
+				}
+			
+				
+					return true;
+			
+			  }
+			  
+			  function downloadBoston()
+				{
+					alert("Downloading BOSToN");
+					<!--document.location.href="boston.bwh.harvard.edu/BOSToNv2.zip";-->
+					
+				}
+			
+			
+		</script>
+		
+		<style>
+			*{padding:0px;margin:0px;}
+			
+			#container
+			{
+				width:500px;
+				height:350px;
+				margin-top:10px;
+				
+			}
+				
+			
+			head
+			{
+				
+			}
+			
+			form
+			{	
+				margin:20px;
+
+			}
+			
+			#buttons
+			{
+			
+			}
+			
+			#button 
+			{
+				margin-top:10px;
+				border: 2px solid #777;
+				border-radius: 10px;
+				outline: none;
+				width:20%;
+				height:40px;
+				float:left;
+			}
+			
+			
+			
+			#prevPage
+			{
+				margin:20px;
+				border: 2px solid #777;
+				border-radius: 10px;
+				outline: none;
+				width:25%;
+				height:40px;
+				background-color:#D8D8D8 ;
+				text-align:center;
+				float:left;
+			}
+			
+			#scrollBox
+			{
+				border: 3px double Black;
+				border-radius: 10px;
+				width:450px;
+				height:450px;
+				overflow:auto;
+				margin:30px;
+				background-color:#FAFAD2;
+			}
+			
+			#terms
+			{
+				margin:15px;
+				color:blue;
+				text-align:center;
+			}
+			
+			.float-clear
+			{
+				border-width:0px;
+			
+				width: 100%;
+				height: 1px;
+				
+				margin-left: 0px;
+				margin-right: 0px;
+				margin-top: 0px;
+				margin-bottom: -1px; 
+				
+				padding-left: 0px;
+				padding-right: 0px;
+				padding-top: 0px;
+				padding-bottom: 0px;
+
+				clear: both;
+			}
+			footer
+			{
+				float:center;
+			}
+		</style>
+		
+
+	</head>
+	
+	<body>
+		<div id = 'container' > 
+			<head>
+				
+				<a id = "prevPage" href="input.html">  Previous Page  </a></p>
+				<br><br><br><br><br>
+				<h2><u>Download BOSToNv2</u></h2>
+				<br><br>
+				<h4>Before downloading BOSToNv2, please make sure accept the terms and conditions</h4>
+				
+
+			</head>
+			
+			<content>
+				
+				<div id = "scrollBox" >
+						<p id="terms" ><b>Terms and Conditions</b></p>
+						<p>This limited-use license to BOSToN grants you, the user, and a non-exclusive, royalty-free right to use BOSToN for informational purposes ONLY. By using the BOSToN application, you agree to the following Terms and Conditions: 
+							
+							 1. General. As used herein, the term “You” means any individual or entity accessing this site or using BOSToN pursuant to this End-User License Agreement (“EULA”). Brigham and Women’s Hospital (“BWH”) is a not-for-profit organization, and has the charitable missions of furthering and improving patient care, facilitating research, and engaging in educational activities benefiting medical personnel. BWH owns all rights, title and interest in and to BOSToN , which is protected by Copyright laws and other intellectual property rights. This EULA is a legal agreement between You and BWH. It sets forth the terms and conditions under which BWH agrees to give you permission to use BOSToN . 
+							 
+							2. License to Use. BWH grants to You, a royalty-free, non-exclusive, non-transferable, revocable license to access and use BOSToN  for informational purposes only (the “Licensee”). No right to sublicense or assign this License to is granted herein. 
+							 
+							3. Limitations on Use. BOSToN IS NOT APPROVED BY THE U.S. FOOD AND DRUG AGENCY, OR ANY OTHER GOVERNMENTAL AGENCY. THIS VERSION OF BOSToN MAY BE USED ONLY AS A RESEARCH OR REFERENCE TOOL, SIMILAR TO THE USE OF A TEXTBOOK OR A JOURNAL ARTICLE. THIS VERSION MAY NOT BE USED FOR ANY COMMERCIAL, CLINICAL OR DECISION-MAKING PURPOSE. BWH does not attempt to verify the accuracy or completeness of the content.  YOU understand that YOU must review and verify information obtained by using BOSToN to ensure that the information is accurate, complete and correctly associated with, and relevant to, individual STUDY cases. You may not (i) copy or distribute BOSToN  in any form beyond your premises, (ii) rent, lend, lease, sell, resell, or otherwise transfer for value, your access to BOSToN , (iii) reverse engineer, decompile, or disassemble BOSToN , or (iv) remove or obscure any copyright notices. You agree that BOSToN shall not be used as the basis of a commercial product or service and that BOSToN  shall not be rewritten in another computer language or otherwise adapted to circumvent the need for obtaining a license from BWH for use of BOSToN . You are responsible for securing any additional software and licenses you may need to use BOSToN .
+							 
+							4. No Other Rights. This EULA does not grant you any rights to use the name, trademark, service mark, logo or other identifying characteristics of BWH or any of its affiliates. All rights not expressly granted in this EULA are reserved by BWH. 
+							 
+							5. Disclaimer of Warranties. TO THE FULLEST EXTENT PERMITTED BY LAW, BWH PROVIDES BOSToN  AND CONTENT ON THE SITE "AS IS" AND WITH ALL FAULTS, ERRORS AND DEFECTS, AND NEITHER BWH NOR ANY OF ITS PERSONNEL NOR ANY OF ITS AFFILIATES IS RESPONSIBLE FOR ENSURING THAT ANY IMPLEMENTATION OF SOFTWARE OR SITE CONTENT WILL BE CLINICALLY SOUND, WITHOUT ERROR, OR OTHERWISE SUCCESSFUL. THE RIGHTS GRANTED IN THIS EULA ARE MADE AVAILABLE WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. 
+							 
+							6. Limitation of Liability. TO THE FULLEST EXTENT PERMITTED BY LAW, BWH SHALL NOT BE LIABLE TO YOU FOR ANY INDIRECT, INCIDENTAL, SPECIAL OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT WITHOUT LIMITATION, ANY DAMAGES RESULTING FROM LOSS OF USE OR LOST BUSINESS, REVENUE, PROFITS, DATA OR GOODWILL) ARISING IN CONNECTION WITH THIS EULA OR OTHERWISE, WHETHER IN AN ACTION IN CONTRACT, TORT, STRICT LIABILITY, NEGLIGENCE OR OTHERWISE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. 
+							 
+							7. Indemnification. You agree to defend, indemnify and hold harmless BWH and its affiliates, trustees, officers, employees, staff members, agents or contractors from and against any claim, charge, demand, action or suit, whether in contract, tort, strict liability, negligence or otherwise, for any and all losses, costs, charges, claims, demands, fees, expenses or damages of any nature or kind arising out of, connected with or resulting from (i) the use of BOSToN  by You, Your affiliates, employees, staff, faculty, students, agents or any other individual you permit to access BOSToN , or (ii) relating in any way to this EULA. 
+							 
+							8. Governing Law. The construction and performance of this EULA will be governed by the laws of the Commonwealth of Massachusetts, without regard to conflicts of laws principles. 
+							 
+							9. Additional Terms. No waiver of any of the terms set forth herein shall be deemed a further and continuing waiver of such term or condition or any other term or condition. If any of the terms or conditions contained herein is invalid or unenforceable under applicable law, the remaining provisions shall continue in full force and effect, and the invalid or unenforceable provision will be deemed superseded by a valid, enforceable provision that most closely matches the intent of the original provision. All rights not expressly granted herein are hereby reserved. 
+
+							10. Entire Agreement. This EULA sets forth all of the covenants, provisions, agreements, conditions, and understandings between the parties regarding the subject matter herein, and there are no covenants, promises, agreements, conditions, or understandings, either oral or written, between them other than those set forth herein. 
+
+							By  clicking on “I Accept"  you agree to the above Terms and Conditions.
+ 
+
+							</p>
+				</div>
+				
+					<a id = "prevPage" href="http://boston.bwh.harvard.edu/BOSToNv2.zip">  I Accept  </a></p>
+					<a id = "prevPage" href="input.html">  I Decline  </a></p>
+					<br><br><br><br>
+					<div class="float-clear"></div>
+
+			</content>
+			<br>
+			
+			<footer>
+				<p>Copyright &copy; 2014</p>
+			</footer>
+		
+			
+		</div>
+		
+		
+		
+		
+	</body>
+
+</html>
